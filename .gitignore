@@ -1,0 +1,17 @@
+# Data and generated files
+data/
+woordhaar.db
+*.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+
+# Node
+node_modules/

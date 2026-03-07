@@ -406,15 +406,15 @@ woordhaar/
 
 ## Dependency Versions
 
-```
-# backend/requirements.txt
-fastapi>=0.115
-uvicorn[standard]>=0.34
-aiosqlite>=0.21
-httpx>=0.28
-pydantic>=2.10
-simplemma>=1.1
-```
+Uses `uv` with `pyproject.toml` and `hatch` as the build system. Dependencies:
+
+- aiosqlite>=0.21
+- httpx>=0.28
+- pydantic>=2.10
+- simplemma>=1.1 (Step 2)
+- fastapi>=0.115, uvicorn[standard]>=0.34 (Step 5)
+
+Run `uv sync` to install; `uv run woordhaar-ingest` for data ingestion.
 
 ## Step Dependency Graph
 

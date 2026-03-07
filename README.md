@@ -25,11 +25,21 @@ A cross-lingual dictionary that accepts a word in **Danish**, **Dutch**, or **En
 
 See [`plan.md`](./plan.md) for the full implementation plan and architecture.
 
-## Setup (planned)
+## Setup
 
-1. Python backend: FastAPI, aiosqlite, httpx, pydantic, simplemma
-2. Node frontend: SvelteKit
-3. Ollama running locally (e.g. `ollama pull qwen3.5:35b-a3b`)
-4. Run data ingestion, then start backend and frontend
+### Step 1 — Data ingestion
 
-*(Details will be expanded as the project takes shape.)*
+1. Install deps and sync env: `uv sync`
+2. Run ingestion (downloads ~3GB, populates `woordhaar.db`):
+   ```bash
+   uv run woordhaar-ingest
+   ```
+   Options: `--data-dir DIR`, `--db PATH`, `--skip-download` (use existing files), `--skip-corsem`
+
+   Data sources: kaikki.org (Danish, Dutch, English), COR.SEM (Danish). Place `cor.sem.1.0.tsv` in `data/` if the COR.SEM download fails, or use `--skip-corsem`.
+
+### Planned
+
+- Python backend: FastAPI, aiosqlite, httpx, pydantic, simplemma
+- Node frontend: SvelteKit
+- Ollama running locally (e.g. `ollama pull qwen3.5:35b-a3b`)
