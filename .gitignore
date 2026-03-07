@@ -2,6 +2,7 @@
 data/
 woordhaar.db
 *.db
+*.db-journal
 
 # Python
 __pycache__/
