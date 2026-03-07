@@ -17,6 +17,12 @@ uv run pytest
 uv run python -c "print('hello')"   # interactive one-liners: uv run python -c "..."
 ```
 
+## Implementation discipline
+
+When you add or change code (scripts, APIs, etc.), run it to confirm it works before asking the user for feedback — unless the operation would be destructive. If it fails, fix it and re-run until it succeeds. Do not report "done" until you have verified it yourself.
+
+After any substantial change, run the unit tests to confirm they still pass. If they fail, and the cause is probably because of code you just changed, then fix it. If the failures is completely unrelated, then report the issue to the user.
+
 ## Project layout
 
 - `backend/` — Python package (FastAPI, ingestion, providers)
