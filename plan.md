@@ -259,12 +259,12 @@ Full prompt text is **not** included in this document. Instead, prompts must sat
 - Prompt builder functions take typed dataclasses as input and return `list[dict]` (messages)
 
 **Test criteria:**
-- [ ] `ollama_service.generate_translations("hund", "da", ["en", "nl"], context)` returns valid `LLMTranslationResult` with ≥1 candidate per target language
-- [ ] Output JSON parses into the Pydantic model without validation errors
-- [ ] Response time <10s on RTX 3090 with Qwen3.5-35B-A3B or equivalent
-- [ ] When Ollama is unreachable, raises `LLMUnavailableError` (not an unhandled exception)
-- [ ] `filter_and_rank()` returns candidates sorted by rank, with `keep=False` candidates removed
-- [ ] Temperature and model name are configurable via `WOORDHAAR_LLM_MODEL` and `WOORDHAAR_LLM_TEMPERATURE` env vars
+- [x] `ollama_service.generate_translations("hund", "da", ["en", "nl"], context)` returns valid `LLMTranslationResult` with ≥1 candidate per target language
+- [x] Output JSON parses into the Pydantic model without validation errors
+- [x] Response time <10s on RTX 3090 with Qwen3.5-35B-A3B or equivalent
+- [x] When Ollama is unreachable, raises `LLMUnavailableError` (not an unhandled exception)
+- [x] `filter_and_rank()` returns candidates sorted by rank, with `keep=False` candidates removed
+- [x] Temperature and model name are configurable via `WOORDHAAR_LLM_MODEL` and `WOORDHAAR_LLM_TEMPERATURE` env vars
 
 ***
 
