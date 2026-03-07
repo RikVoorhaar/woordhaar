@@ -67,3 +67,22 @@ class LLMRankingResponse(BaseModel):
 
     candidates: list[LLMRankingOutput] = []
 
+
+class TranslationSense(BaseModel):
+    """One sense (definition) with its ranked translations per target language."""
+
+    source_definition: str
+    translations: dict[str, list[RankedTranslation]]  # lang -> ranked list
+
+
+class TranslationResult(BaseModel):
+    """API response for /api/translate (frontend contract)."""
+
+    input_word: str
+    input_language: str
+    lemmas: list[str]
+    senses: list[TranslationSense]
+    etymology: str | None = None
+    cognate_cluster: list[str] = []
+    processing_time_ms: int
+

@@ -290,12 +290,12 @@ Full prompt text is **not** included in this document. Instead, prompts must sat
 - Total wall-clock target: <5 seconds for common words on RTX 3090
 
 **Test criteria:**
-- [ ] `translate("hund", "da")` returns a `TranslationResult` where `senses[0].translations["en"]` contains an entry with `word="dog"`
-- [ ] `translate("house", "en")` returns NL translations containing `"huis"` and DA translations containing `"hus"`
-- [ ] `translate("fiets", "nl")` returns EN translations containing `"bicycle"` or `"bike"`
-- [ ] `processing_time_ms` is <5000 for words present in the dictionary
-- [ ] Pipeline degrades gracefully if LLM is down: returns dictionary-only results with empty `confidence` fields
-- [ ] Lemmatization handles inflected forms: `translate("hunde", "da")` finds results for "hund"
+- [x] `translate("hund", "da")` returns a `TranslationResult` where `senses[0].translations["en"]` contains an entry with `word="dog"`
+- [x] `translate("house", "en")` returns NL translations containing `"huis"` and DA translations containing `"hus"`
+- [x] `translate("fiets", "nl")` returns EN translations containing `"bicycle"` or `"bike"`
+- [x] `processing_time_ms` is <5000 for words present in the dictionary
+- [x] Pipeline degrades gracefully if LLM is down: returns dictionary-only results with `confidence="medium"`
+- [x] Lemmatization handles inflected forms: `translate("hunde", "da")` finds results for "hund"
 
 ***
 
