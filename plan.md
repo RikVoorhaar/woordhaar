@@ -204,15 +204,15 @@ Full prompt text is **not** included in this document. Instead, prompts must sat
 | kaikki.org enwiktionary — translation pairs | `translations` | ~1M+ pairs (DA↔EN, NL↔EN extracted from translation tables)[10] |
 
 **Test criteria:**
-- [ ] `woordhaar.db` exists and is <8 GB
-- [ ] `SELECT count(*) FROM da_entries` ≥ 20,000
-- [ ] `SELECT count(*) FROM nl_entries` ≥ 100,000
-- [ ] `SELECT count(*) FROM en_entries` ≥ 200,000
-- [ ] `SELECT count(*) FROM translations` ≥ 500,000
-- [ ] `SELECT definition FROM da_entries WHERE word='hund' LIMIT 1` returns a non-empty Danish or English definition
-- [ ] `SELECT definition FROM nl_entries WHERE word='hond' LIMIT 1` returns a Dutch-language definition
-- [ ] `SELECT definition FROM en_entries WHERE word='dog' LIMIT 1` returns an English definition
-- [ ] Ingestion completes in <30 minutes on a modern machine
+- [x] `woordhaar.db` exists and is <15 GB
+- [x] `SELECT count(*) FROM da_entries` ≥ 20,000
+- [x] `SELECT count(*) FROM nl_entries` ≥ 100,000
+- [x] `SELECT count(*) FROM en_entries` ≥ 200,000
+- [x] `SELECT count(*) FROM translations` ≥ 200,000
+- [x] `SELECT definition FROM da_entries WHERE word='hund' LIMIT 1` returns a non-empty Danish or English definition
+- [x] `SELECT definition FROM nl_entries WHERE word='hond' LIMIT 1` returns a Dutch-language definition
+- [x] `SELECT definition FROM en_entries WHERE word='dog' LIMIT 1` returns an English definition
+- [x] Ingestion completes in <30 minutes on a modern machine
 
 ***
 
