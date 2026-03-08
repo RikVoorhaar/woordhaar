@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from pydantic import BaseModel, model_validator
 
-from backend.config import DB_PATH, LOG_LEVEL, OLLAMA_BASE_URL
+from backend.config import DB_PATH, LLM_MODEL, LOG_LEVEL, OLLAMA_BASE_URL
 from backend.logging_config import setup_logging
 from backend.models import ErrorResponse, TranslationResult
 from backend.providers.base import DictionaryEntry
@@ -57,16 +57,32 @@ async def lifespan(app: FastAPI):
         raise RuntimeError(f"Database unavailable: {e}") from e
 
     logger.info(f"Checking Ollama availability at {OLLAMA_BASE_URL}")
+    app.state.ollama_ok = False
     try:
         async with httpx.AsyncClient() as client:
             r = await client.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=2.0)
-            app.state.ollama_ok = r.status_code == 200 and bool((r.json() or {}).get("models"))
-            if app.state.ollama_ok:
-                logger.info("Ollama is available")
+            if r.status_code == 200:
+                data = r.json() or {}
+                models = data.get("models", [])
+                if models:
+                    model_names = [m.get("name") for m in models if m.get("name")]
+                    app.state.ollama_ok = True
+                    logger.info(f"Ollama is available with {len(model_names)} model(s)")
+                    
+                    # Verify configured model exists
+                    if LLM_MODEL not in model_names:
+                        logger.error(
+                            f"Configured model '{LLM_MODEL}' not found in Ollama. "
+                            f"Available models: {', '.join(model_names[:5])}"
+                            + (f" (and {len(model_names) - 5} more)" if len(model_names) > 5 else "")
+                        )
+                    else:
+                        logger.info(f"Configured model '{LLM_MODEL}' is available")
+                else:
+                    logger.warning("Ollama responded but no models found")
             else:
-                logger.warning("Ollama responded but no models found")
+                logger.warning(f"Ollama responded with status {r.status_code}")
     except Exception as e:
-        app.state.ollama_ok = False
         logger.warning(f"Ollama unavailable: {e}")
 
     app.state.pipeline = TranslationPipeline(db_path=db)

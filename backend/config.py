@@ -25,7 +25,7 @@ def _env_float(key: str, default: float) -> float:
 
 DB_PATH = _env("WOORDHAAR_DB_PATH", "woordhaar.db")
 OLLAMA_BASE_URL = _env("WOORDHAAR_OLLAMA_BASE_URL", "http://localhost:11434")
-LLM_MODEL = _env("WOORDHAAR_LLM_MODEL", "qwen3.5:35b-a3b")
+LLM_MODEL = _env("WOORDHAAR_LLM_MODEL", "qwen3:30b-a3b-q4_K_M")
 LLM_TEMPERATURE = _env_float("WOORDHAAR_LLM_TEMPERATURE", 0.1)
 LLM_TEMP_RANKING = _env_float("WOORDHAAR_LLM_TEMP_RANKING", 0.0)
 LLM_TIMEOUT = _env_int("WOORDHAAR_LLM_TIMEOUT", 15)
