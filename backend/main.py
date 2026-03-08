@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
 
 import aiosqlite
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from loguru import logger
 from pydantic import BaseModel, model_validator
 
-from backend.config import DB_PATH, OLLAMA_BASE_URL
+from backend.config import DB_PATH, LOG_LEVEL, OLLAMA_BASE_URL
+from backend.logging_config import setup_logging
 from backend.models import ErrorResponse, TranslationResult
 from backend.providers.base import DictionaryEntry
 from backend.pipeline import TranslationPipeline
@@ -35,25 +38,44 @@ class TranslateRequest(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup: verify DB and Ollama; shutdown: cleanup."""
+    # Setup logging first
+    setup_logging(log_level=LOG_LEVEL)
+    logger.info("Starting Woordhaar API")
+
     db = _resolve_db_path()
+    logger.info(f"Database path: {db}")
+    
     try:
         async with aiosqlite.connect(db) as conn:
             for table in ("da_entries", "nl_entries", "en_entries"):
                 cursor = await conn.execute(f"SELECT count(*) FROM {table}")
-                await cursor.fetchone()
+                row = await cursor.fetchone()
+                count = row[0] if row else 0
+                logger.info(f"Table {table}: {count} entries")
     except Exception as e:
+        logger.error(f"Database unavailable: {e}", exc_info=True)
         raise RuntimeError(f"Database unavailable: {e}") from e
 
+    logger.info(f"Checking Ollama availability at {OLLAMA_BASE_URL}")
     try:
         async with httpx.AsyncClient() as client:
             r = await client.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=2.0)
             app.state.ollama_ok = r.status_code == 200 and bool((r.json() or {}).get("models"))
-    except Exception:
+            if app.state.ollama_ok:
+                logger.info("Ollama is available")
+            else:
+                logger.warning("Ollama responded but no models found")
+    except Exception as e:
         app.state.ollama_ok = False
+        logger.warning(f"Ollama unavailable: {e}")
 
     app.state.pipeline = TranslationPipeline(db_path=db)
     app.state.db_path = db
+    logger.info("Pipeline initialized, application ready")
+    
     yield
+    
+    logger.info("Shutting down Woordhaar API")
     # shutdown: no persistent connections to close
 
 
@@ -101,8 +123,26 @@ async def _get_db_counts() -> dict[str, int]:
 )
 async def translate(req: TranslateRequest) -> TranslationResult:
     """Run the translation pipeline for a word in the given language."""
-    pipeline: TranslationPipeline = app.state.pipeline
-    return await pipeline.translate(req.word, req.language)
+    t0 = time.perf_counter()
+    logger.info(f"Translation request: word='{req.word}', language='{req.language}'")
+    
+    try:
+        pipeline: TranslationPipeline = app.state.pipeline
+        result = await pipeline.translate(req.word, req.language)
+        elapsed_ms = int((time.perf_counter() - t0) * 1000)
+        logger.info(
+            f"Translation completed: word='{req.word}', language='{req.language}', "
+            f"senses={len(result.senses)}, time={elapsed_ms}ms"
+        )
+        return result
+    except Exception as e:
+        elapsed_ms = int((time.perf_counter() - t0) * 1000)
+        logger.error(
+            f"Translation failed: word='{req.word}', language='{req.language}', "
+            f"time={elapsed_ms}ms",
+            exc_info=True
+        )
+        raise
 
 
 @app.get(
@@ -112,16 +152,30 @@ async def translate(req: TranslateRequest) -> TranslationResult:
 )
 async def lookup(lang: Lang, word: str) -> list[DictionaryEntry]:
     """Raw dictionary lookup for a word (debug/testing)."""
-    pipeline: TranslationPipeline = app.state.pipeline
-    return await pipeline.provider.lookup(word, lang)
+    logger.info(f"Dictionary lookup: word='{word}', language='{lang}'")
+    try:
+        pipeline: TranslationPipeline = app.state.pipeline
+        entries = await pipeline.provider.lookup(word, lang)
+        logger.info(f"Dictionary lookup completed: word='{word}', language='{lang}', entries={len(entries)}")
+        return entries
+    except Exception as e:
+        logger.error(f"Dictionary lookup failed: word='{word}', language='{lang}'", exc_info=True)
+        raise
 
 
 @app.get("/api/health")
 async def health() -> dict:
     """Health check: status, Ollama reachability, DB entry counts."""
-    counts = await _get_db_counts()
-    return {
-        "status": "ok",
-        "ollama": app.state.ollama_ok,
-        "db_entries": counts,
-    }
+    logger.debug("Health check requested")
+    try:
+        counts = await _get_db_counts()
+        result = {
+            "status": "ok",
+            "ollama": app.state.ollama_ok,
+            "db_entries": counts,
+        }
+        logger.debug(f"Health check: {result}")
+        return result
+    except Exception as e:
+        logger.error("Health check failed", exc_info=True)
+        raise

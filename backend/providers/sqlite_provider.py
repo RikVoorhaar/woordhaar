@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Literal
 
 import aiosqlite
+from loguru import logger
 
 from .base import DictionaryEntry, DictionaryProvider
 
@@ -29,34 +30,72 @@ class SqliteDictionaryProvider(DictionaryProvider):
 
     async def lookup(self, word: str, lang: str) -> list[DictionaryEntry]:
         """Look up a word in the monolingual table."""
+        log_ctx = logger.bind(word=word, lang=lang)
         table = _TABLE_MAP.get(lang)
         if not table:
+            log_ctx.warning(f"Invalid language code: {lang}")
             return []
-        async with aiosqlite.connect(self.db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.execute(
-                f"""SELECT word, pos, definition, examples, etymology, synonyms, raw_json
-                FROM {table} WHERE word = ?""",
-                (word,),
-            )
-            rows = await cursor.fetchall()
-        return [
-            _row_to_entry(row, lang)
-            for row in rows
-        ]
+        
+        try:
+            async with aiosqlite.connect(self.db_path) as conn:
+                conn.row_factory = aiosqlite.Row
+                cursor = await conn.execute(
+                    f"""SELECT word, pos, definition, examples, etymology, synonyms, raw_json
+                    FROM {table} WHERE word = ?""",
+                    (word,),
+                )
+                rows = await cursor.fetchall()
+            
+            entries = [
+                _row_to_entry(row, lang)
+                for row in rows
+            ]
+            
+            if not entries:
+                log_ctx.debug(f"No dictionary entries found for '{word}' ({lang})")
+            else:
+                # Count entries with definitions
+                entries_with_defs = sum(1 for e in entries if e.definitions)
+                log_ctx.debug(
+                    f"Dictionary lookup: {len(entries)} entries found, "
+                    f"{entries_with_defs} with definitions"
+                )
+            
+            return entries
+        except Exception as e:
+            log_ctx.error(f"Dictionary lookup failed: {e}", exc_info=True)
+            raise
 
     async def lookup_translations(
         self, word: str, source_lang: str, target_lang: str
     ) -> list[str]:
         """Return translation candidates from the bilingual table."""
-        async with aiosqlite.connect(self.db_path) as conn:
-            cursor = await conn.execute(
-                """SELECT DISTINCT target_word FROM translations
-                WHERE word = ? AND source_lang = ? AND target_lang = ?""",
-                (word, source_lang, target_lang),
-            )
-            rows = await cursor.fetchall()
-        return [r[0] for r in rows if r[0]]
+        log_ctx = logger.bind(
+            word=word,
+            source_lang=source_lang,
+            target_lang=target_lang,
+        )
+        
+        try:
+            async with aiosqlite.connect(self.db_path) as conn:
+                cursor = await conn.execute(
+                    """SELECT DISTINCT target_word FROM translations
+                    WHERE word = ? AND source_lang = ? AND target_lang = ?""",
+                    (word, source_lang, target_lang),
+                )
+                rows = await cursor.fetchall()
+            
+            translations = [r[0] for r in rows if r[0]]
+            
+            if not translations:
+                log_ctx.debug(f"No bilingual translations found for {source_lang}→{target_lang}")
+            else:
+                log_ctx.debug(f"Bilingual lookup: {len(translations)} translations found")
+            
+            return translations
+        except Exception as e:
+            log_ctx.error(f"Bilingual lookup failed: {e}", exc_info=True)
+            raise
 
     async def has_word(self, word: str, lang: str) -> bool:
         """Fast existence check."""
@@ -80,12 +119,16 @@ def _row_to_entry(row: aiosqlite.Row, lang: str) -> DictionaryEntry:
             import json
             raw_data = json.loads(raw_json)
         except (json.JSONDecodeError, TypeError):
-            pass
+            logger.debug(f"Failed to parse raw_json for word '{row['word']}' ({lang})")
+    
+    definition_text = row["definition"]
+    has_definition = bool(definition_text and definition_text.strip())
+    
     return DictionaryEntry(
         word=row["word"],
         language=lang,
         pos=row["pos"] or None,
-        definitions=[row["definition"]] if row["definition"] else [],
+        definitions=[definition_text] if has_definition else [],
         examples=_parse_list(row["examples"]),
         synonyms=_parse_list(row["synonyms"]),
         etymology=row["etymology"] or None,

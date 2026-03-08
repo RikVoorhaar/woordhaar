@@ -12,6 +12,7 @@ dependencies = [
     "aiosqlite>=0.21",
     "fastapi>=0.115",
     "httpx>=0.28",
+    "loguru>=0.7.0",
     "pydantic>=2.10",
     "simplemma>=1.1",
     "uvicorn>=0.32",
