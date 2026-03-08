@@ -311,15 +311,15 @@ Full prompt text is **not** included in this document. Instead, prompts must sat
 - Error responses use Pydantic models: `ErrorResponse(detail: str, error_code: str)`
 
 **Test criteria:**
-- [ ] `pytest` test suite with ≥10 tests covering all endpoints
-- [ ] `POST /api/translate {"word": "hund", "language": "da"}` returns 200 with valid `TranslationResult` JSON
-- [ ] `POST /api/translate {"word": "", "language": "da"}` returns 422 (validation error)
-- [ ] `POST /api/translate {"word": "hund", "language": "xx"}` returns 422 (invalid language)
-- [ ] `GET /api/lookup/da/hund` returns list of `DictionaryEntry` objects
-- [ ] `GET /api/health` returns `{"status": "ok", "ollama": true, "db_entries": {"da": N, "nl": N, "en": N}}`
-- [ ] OpenAPI docs accessible at `/docs` and correctly describe all models
-- [ ] All endpoints respond within 10s under normal conditions
-- [ ] CORS headers present for `localhost:5173`
+- [x] `pytest` test suite with ≥10 tests covering all endpoints
+- [x] `POST /api/translate {"word": "hund", "language": "da"}` returns 200 with valid `TranslationResult` JSON
+- [x] `POST /api/translate {"word": "", "language": "da"}` returns 422 (validation error)
+- [x] `POST /api/translate {"word": "hund", "language": "xx"}` returns 422 (invalid language)
+- [x] `GET /api/lookup/da/hund` returns list of `DictionaryEntry` objects
+- [x] `GET /api/health` returns `{"status": "ok", "ollama": true, "db_entries": {"da": N, "nl": N, "en": N}}`
+- [x] OpenAPI docs accessible at `/docs` and correctly describe all models
+- [x] All endpoints respond within 10s under normal conditions
+- [x] CORS headers present for `localhost:5173`
 
 ***
 

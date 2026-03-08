@@ -23,6 +23,7 @@ def _env_float(key: str, default: float) -> float:
         return default
 
 
+DB_PATH = _env("WOORDHAAR_DB_PATH", "woordhaar.db")
 OLLAMA_BASE_URL = _env("WOORDHAAR_OLLAMA_BASE_URL", "http://localhost:11434")
 LLM_MODEL = _env("WOORDHAAR_LLM_MODEL", "qwen3.5:35b-a3b")
 LLM_TEMPERATURE = _env_float("WOORDHAAR_LLM_TEMPERATURE", 0.1)

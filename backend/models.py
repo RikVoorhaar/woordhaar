@@ -68,6 +68,13 @@ class LLMRankingResponse(BaseModel):
     candidates: list[LLMRankingOutput] = []
 
 
+class ErrorResponse(BaseModel):
+    """API error response."""
+
+    detail: str
+    error_code: str
+
+
 class TranslationSense(BaseModel):
     """One sense (definition) with its ranked translations per target language."""
 

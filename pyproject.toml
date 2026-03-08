@@ -10,9 +10,11 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "aiosqlite>=0.21",
+    "fastapi>=0.115",
     "httpx>=0.28",
     "pydantic>=2.10",
     "simplemma>=1.1",
+    "uvicorn>=0.32",
 ]
 
 [project.optional-dependencies]
@@ -20,7 +22,6 @@ dev = ["pytest>=8.0", "pytest-asyncio>=0.24"]
 
 [project.scripts]
 woordhaar-ingest = "backend.ingest:main"
-
 [tool.hatch.build.targets.wheel]
 packages = ["backend"]
 
