@@ -38,8 +38,31 @@ See [`plan.md`](./plan.md) for the full implementation plan and architecture.
 
    Data sources: kaikki.org (Danish, Dutch, English), COR.SEM (Danish). Place `cor.sem.1.0.tsv` in `data/` if the COR.SEM download fails, or use `--skip-corsem`.
 
-### Planned
+### Step 2 — Running the Application
 
-- Python backend: FastAPI, aiosqlite, httpx, pydantic, simplemma
-- Node frontend: SvelteKit
-- Ollama running locally (e.g. `ollama pull qwen3.5:35b-a3b`)
+**Backend (FastAPI):**
+
+```bash
+uv run uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```
+
+The API will be available at `http://127.0.0.1:8000`. OpenAPI docs at `http://127.0.0.1:8000/docs`.
+
+**Frontend (SvelteKit):**
+
+```bash
+cd frontend
+bun run dev
+```
+
+The frontend will be available at `http://localhost:5173` (default SvelteKit port).
+
+**Environment Variables (Frontend):**
+
+Optionally create `frontend/.env` to override backend URL:
+```bash
+PUBLIC_API_HOST=127.0.0.1
+PUBLIC_API_PORT=8000
+```
+
+**Note:** Ensure Ollama is running locally (e.g. `ollama pull qwen3.5:35b-a3b`). The backend checks Ollama availability on startup.

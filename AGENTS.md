@@ -31,3 +31,13 @@ Do not autonomosly decide to skip or work around an issue, such as a failing tes
 - `frontend/` — SvelteKit (planned)
 - `data/` — Downloaded dictionary sources (gitignored)
 - `plan.md` — Implementation plan and architecture
+
+## Svelte and styling
+
+- Frontend is **SvelteKit** with **Tailwind** and **daisyUI**.
+- Never use `<style>` in `.svelte` files or add `.css` files for custom styles.
+- All styling is Tailwind utility classes and daisyUI component classes.
+
+## Frontend package manager
+
+Use **bun** for frontend: `bun install`, `bun run dev`, `bun add`. Do not use npm, yarn, or pnpm.

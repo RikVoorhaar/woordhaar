@@ -16,3 +16,7 @@ env/
 
 # Node
 node_modules/
+
+# Frontend
+frontend/.env
+frontend/.env.local
